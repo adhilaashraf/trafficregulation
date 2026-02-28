@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('/static/images/222.jpg') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .video-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        /* Live Density Panel */
+        .density-panel {
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 12px;
+            padding: 18px 25px;
+            width: 800px;
+            box-sizing: border-box;
+        }
+
+        .density-panel-title {
+            font-size: 15px;
+            color: #00e5ff;
+            margin-bottom: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .density-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .d-card {
+            background: rgba(255,255,255,0.07);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .d-card .d-label {
+            font-size: 11px;
+            opacity: 0.65;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .d-card .d-val {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .d-card .d-cong {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        /* Congestion bar */
+        .lane-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .lane-bar-label {
+            font-size: 12px;
+            width: 50px;
+            flex-shrink: 0;
+            text-align: right;
+            opacity: 0.8;
+        }
+
+        .lane-bar-bg {
+            flex: 1;
+            height: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .lane-bar-fill {
+            height: 100%;
+            border-radius: 9px;
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .busier-tag {
+            font-size: 12px;
+            color: #ffd54f;
+            margin-top: 6px;
+            text-align: center;
+            opacity: 0.85;
+        }
+    </style>
+    <script>
+        function getCongestionLabel(w) {
+            if (w < 5) return 'Low 🟢';
+            if (w < 15) return 'Moderate 🟡';
+            return 'High 🔴';
+        }
+
+        function getCongestionColor(w) {
+            if (w < 5) return '#4CAF50';
+            if (w < 15) return '#FF9800';
+            return '#f44336';
+        }
+
+        function checkProcessingStatus() {
+            fetch('/check_status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.done) {
+                        window.location.href = "/results";
+                    } else {
+                        setTimeout(checkProcessingStatus, 2000);
+                    }
+                });
+        }
+
+        function fetchDensity() {
+            fetch('/get_density_trend')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('live-lane1-density').textContent = data.lane1_weighted.toFixed(1);
+                    document.getElementById('live-lane2-density').textContent = data.lane2_weighted.toFixed(1);
+                    document.getElementById('live-total-density').textContent = data.total_weighted.toFixed(1);
+
+                    document.getElementById('live-lane1-cong').textContent = getCongestionLabel(data.lane1_weighted);
+                    document.getElementById('live-lane1-cong').style.color = getCongestionColor(data.lane1_weighted);
+                    document.getElementById('live-lane2-cong').textContent = getCongestionLabel(data.lane2_weighted);
+                    document.getElementById('live-lane2-cong').style.color = getCongestionColor(data.lane2_weighted);
+
+                    const total = (data.lane1_weighted + data.lane2_weighted) || 1;
+                    const l1pct = Math.round((data.lane1_weighted / total) * 100);
+                    const l2pct = 100 - l1pct;
+
+                    document.getElementById('live-lane1-bar').style.width = l1pct + '%';
+                    document.getElementById('live-lane1-bar').textContent = data.lane1_weighted.toFixed(1);
+                    document.getElementById('live-lane2-bar').style.width = l2pct + '%';
+                    document.getElementById('live-lane2-bar').textContent = data.lane2_weighted.toFixed(1);
+
+                    if (data.busier_lane === 'Equal') {
+                        document.getElementById('live-busier').textContent = '⚖️ Both lanes equal';
+                    } else {
+                        document.getElementById('live-busier').textContent =
+                            `🚦 ${data.busier_lane} is busier by ${data.busier_by} units`;
+                    }
+                });
+        }
+
+        setTimeout(checkProcessingStatus, 2000);
+        setInterval(fetchDensity, 2000);
+        window.onload = fetchDensity;
+    </script>
+</head>
+<body>
+    <h1>Live Vehicle Detection & Tracking</h1>
+
+    <div class="video-container">
+        <img src="{{ url_for('video_feed') }}" width="800">
+    </div>
+
+    <!-- Live Density Panel -->
+    <div class="density-panel">
+        <div class="density-panel-title">📊 Live Weighted Traffic Density</div>
+        <div class="density-row">
+            <div class="d-card">
+                <div class="d-label">Lane 1 Density</div>
+                <div class="d-val" id="live-lane1-density">0.0</div>
+                <div class="d-cong" id="live-lane1-cong">Low 🟢</div>
+            </div>
+            <div class="d-card">
+                <div class="d-label">Lane 2 Density</div>
+                <div class="d-val" id="live-lane2-density">0.0</div>
+                <div class="d-cong" id="live-lane2-cong">Low 🟢</div>
+            </div>
+            <div class="d-card" style="grid-column: span 2;">
+                <div class="d-label">Total Weighted Density</div>
+                <div class="d-val" id="live-total-density">0.0</div>
+                <div class="lane-bar-row" style="margin-top:8px;">
+                    <span class="lane-bar-label">Lane 1</span>
+                    <div class="lane-bar-bg">
+                        <div class="lane-bar-fill" id="live-lane1-bar"
+                             style="width:50%; background: linear-gradient(90deg,#00c853,#69f0ae);">0</div>
+                    </div>
+                </div>
+                <div class="lane-bar-row">
+                    <span class="lane-bar-label">Lane 2</span>
+                    <div class="lane-bar-bg">
+                        <div class="lane-bar-fill" id="live-lane2-bar"
+                             style="width:50%; background: linear-gradient(90deg,#d50000,#ff5252);">0</div>
+                    </div>
+                </div>
+                <div class="busier-tag" id="live-busier">⏳ Calculating...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-message">
+        Processing video... You will be redirected to results when complete.
+    </div>
+</body>
+</html>

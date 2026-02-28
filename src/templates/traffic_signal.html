@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Traffic Signal Simulation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('/static/images/222.jpg') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .simulation-container {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .algorithm-info {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .algorithm-info h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        /* Density Panel */
+        .density-panel {
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .density-panel h3 {
+            margin: 0 0 15px 0;
+            color: #00e5ff;
+            font-size: 18px;
+        }
+
+        .density-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .density-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .density-item .d-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+
+        .density-item .d-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .density-item .d-congestion {
+            font-size: 13px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .traffic-lights-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .traffic-light-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .lane-label {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .lane-density-badge {
+            display: inline-block;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .traffic-light {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .light {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .light.red { background: #444; }
+        .light.red.active {
+            background: #ff0000;
+            box-shadow: 0 0 40px #ff0000, 0 0 80px #ff0000;
+            border-color: #ff0000;
+        }
+
+        .light.yellow { background: #444; }
+        .light.yellow.active {
+            background: #ffff00;
+            box-shadow: 0 0 40px #ffff00, 0 0 80px #ffff00;
+            border-color: #ffff00;
+        }
+
+        .light.green { background: #444; }
+        .light.green.active {
+            background: #00ff00;
+            box-shadow: 0 0 40px #00ff00, 0 0 80px #00ff00;
+            border-color: #00ff00;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #4CAF50;
+        }
+
+        .vehicle-count {
+            font-size: 15px;
+            margin: 5px 0;
+            opacity: 0.85;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .efficiency-meter {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .efficiency-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .efficiency-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(102,126,234,0.5); }
+
+        .btn-secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-secondary:hover { transform: scale(1.05); }
+
+        .btn-success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .btn-success:hover { transform: scale(1.05); }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .weight-note {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+    </style>
+    <script>
+        let lane1Count = 0;
+        let lane2Count = 0;
+        let lane1Weighted = 0;
+        let lane2Weighted = 0;
+        let totalCount = 0;
+        let lane1Timer = 0;
+        let lane2Timer = 0;
+        let simulationRunning = false;
+        let cycleCount = 0;
+        let totalWaitTime = 0;
+
+        // Weights match backend
+        const WEIGHTS = { car: 1.0, bus: 2.5, truck: 2.5, motorbike: 0.5, bicycle: 0.5 };
+
+        // Weighted density-based timing (the key upgrade)
+        function calculateGreenTime(weightedCount, otherWeightedCount) {
+            const MIN_TIME = 15;
+            const MAX_TIME = 60;
+            const BASE_TIME = 20;
+
+            if (weightedCount === 0 && otherWeightedCount === 0) return BASE_TIME;
+
+            const ratio = weightedCount / (weightedCount + otherWeightedCount);
+            const calculatedTime = BASE_TIME + (ratio * 40);
+            return Math.max(MIN_TIME, Math.min(MAX_TIME, Math.round(calculatedTime)));
+        }
+
+        function getCongestionColor(weighted) {
+            if (weighted < 5) return '#4CAF50';
+            if (weighted < 15) return '#FF9800';
+            return '#f44336';
+        }
+
+        function getCongestionLabel(weighted) {
+            if (weighted < 5) return 'Low 🟢';
+            if (weighted < 15) return 'Moderate 🟡';
+            return 'High 🔴';
+        }
+
+        function fetchVehicleData() {
+            fetch('/get_vehicle_counts')
+                .then(response => response.json())
+                .then(data => {
+                    lane1Count = data.lane1Count || 0;
+                    lane2Count = data.lane2Count || 0;
+                    totalCount = data.totalCount || 0;
+                    lane1Weighted = data.lane1Weighted || 0;
+                    lane2Weighted = data.lane2Weighted || 0;
+
+                    document.getElementById('lane1-count').textContent = lane1Count;
+                    document.getElementById('lane2-count').textContent = lane2Count;
+                    document.getElementById('total-vehicles').textContent = totalCount;
+
+                    // Update density panel
+                    document.getElementById('lane1-density-val').textContent = lane1Weighted.toFixed(1);
+                    document.getElementById('lane2-density-val').textContent = lane2Weighted.toFixed(1);
+                    document.getElementById('total-density-val').textContent = (lane1Weighted + lane2Weighted).toFixed(1);
+
+                    document.getElementById('lane1-cong').textContent = getCongestionLabel(lane1Weighted);
+                    document.getElementById('lane1-cong').style.color = getCongestionColor(lane1Weighted);
+                    document.getElementById('lane2-cong').textContent = getCongestionLabel(lane2Weighted);
+                    document.getElementById('lane2-cong').style.color = getCongestionColor(lane2Weighted);
+
+                    // Lane density badges on signal boxes
+                    document.getElementById('lane1-density-badge').textContent =
+                        `Weighted Density: ${lane1Weighted.toFixed(1)} | ${getCongestionLabel(lane1Weighted)}`;
+                    document.getElementById('lane2-density-badge').textContent =
+                        `Weighted Density: ${lane2Weighted.toFixed(1)} | ${getCongestionLabel(lane2Weighted)}`;
+                    document.getElementById('lane1-density-badge').style.color = getCongestionColor(lane1Weighted);
+                    document.getElementById('lane2-density-badge').style.color = getCongestionColor(lane2Weighted);
+
+                    // Efficiency bar based on weighted density
+                    const maxExpected = 30;
+                    const efficiency = Math.min(100, ((lane1Weighted + lane2Weighted) / maxExpected) * 100);
+                    document.getElementById('efficiency-fill').style.width = efficiency + '%';
+                    document.getElementById('efficiency-value').textContent = efficiency.toFixed(1) + '%';
+                });
+        }
+
+        function updateTrafficLight(lane, color) {
+            const lanePrefix = 'lane' + lane;
+            document.getElementById(lanePrefix + '-red').classList.remove('active');
+            document.getElementById(lanePrefix + '-yellow').classList.remove('active');
+            document.getElementById(lanePrefix + '-green').classList.remove('active');
+            document.getElementById(lanePrefix + '-' + color).classList.add('active');
+        }
+
+        function startSimulation() {
+            if (simulationRunning) return;
+            simulationRunning = true;
+            cycleCount = 0;
+            totalWaitTime = 0;
+            document.getElementById('simulation-status').textContent = 'Running';
+            document.getElementById('status-dot').style.background = '#4CAF50';
+            runCycle();
+        }
+
+        function runCycle() {
+            if (!simulationRunning) return;
+
+            cycleCount++;
+            document.getElementById('cycle-count').textContent = cycleCount;
+
+            // Use WEIGHTED density for timing calculation
+            const lane1GreenTime = calculateGreenTime(lane1Weighted, lane2Weighted);
+            const lane2GreenTime = calculateGreenTime(lane2Weighted, lane1Weighted);
+
+            document.getElementById('lane1-calc').textContent =
+                `Density ${lane1Weighted.toFixed(1)} → ${lane1GreenTime}s`;
+            document.getElementById('lane2-calc').textContent =
+                `Density ${lane2Weighted.toFixed(1)} → ${lane2GreenTime}s`;
+
+            // Lane 1 green
+            updateTrafficLight(1, 'green');
+            updateTrafficLight(2, 'red');
+
+            lane1Timer = lane1GreenTime;
+            document.getElementById('lane1-timer').textContent = lane1Timer;
+            document.getElementById('lane2-timer').textContent = '—';
+
+            const lane1Interval = setInterval(() => {
+                lane1Timer--;
+                document.getElementById('lane1-timer').textContent = lane1Timer;
+
+                if (lane1Timer <= 0) {
+                    clearInterval(lane1Interval);
+                    updateTrafficLight(1, 'yellow');
+
+                    setTimeout(() => {
+                        updateTrafficLight(1, 'red');
+                        updateTrafficLight(2, 'green');
+
+                        lane2Timer = lane2GreenTime;
+                        document.getElementById('lane1-timer').textContent = '—';
+                        document.getElementById('lane2-timer').textContent = lane2Timer;
+
+                        const lane2Interval = setInterval(() => {
+                            lane2Timer--;
+                            document.getElementById('lane2-timer').textContent = lane2Timer;
+
+                            if (lane2Timer <= 0) {
+                                clearInterval(lane2Interval);
+                                updateTrafficLight(2, 'yellow');
+
+                                setTimeout(() => {
+                                    updateTrafficLight(2, 'red');
+
+                                    const avgWaitTime = (lane1GreenTime + lane2GreenTime) / 2;
+                                    totalWaitTime += avgWaitTime;
+                                    const avgTotalWait = (totalWaitTime / cycleCount).toFixed(1);
+                                    document.getElementById('avg-wait-time').textContent = avgTotalWait + 's';
+
+                                    setTimeout(runCycle, 2000);
+                                }, 3000);
+                            }
+                        }, 1000);
+                    }, 3000);
+                }
+            }, 1000);
+        }
+
+        function stopSimulation() {
+            simulationRunning = false;
+            document.getElementById('simulation-status').textContent = 'Stopped';
+            document.getElementById('status-dot').style.background = '#ff0000';
+            updateTrafficLight(1, 'red');
+            updateTrafficLight(2, 'red');
+            document.getElementById('lane1-timer').textContent = '—';
+            document.getElementById('lane2-timer').textContent = '—';
+        }
+
+        function resetSimulation() {
+            stopSimulation();
+            cycleCount = 0;
+            totalWaitTime = 0;
+            document.getElementById('cycle-count').textContent = '0';
+            document.getElementById('avg-wait-time').textContent = '0s';
+            document.getElementById('simulation-status').textContent = 'Ready';
+            document.getElementById('status-dot').style.background = '#ffff00';
+            document.getElementById('lane1-calc').textContent = '—';
+            document.getElementById('lane2-calc').textContent = '—';
+        }
+
+        setInterval(fetchVehicleData, 2000);
+
+        window.onload = function () {
+            fetchVehicleData();
+            updateTrafficLight(1, 'red');
+            updateTrafficLight(2, 'red');
+        };
+    </script>
+</head>
+<body>
+    <h1>🚦 Dynamic Traffic Signal Simulation</h1>
+    <p class="subtitle">Intelligent signal timing based on weighted vehicle density</p>
+
+    <div class="simulation-container">
+
+        <!-- Algorithm Info -->
+        <div class="algorithm-info">
+            <h3>🧠 Weighted Density Algorithm</h3>
+            <p>Signal timing is now calculated using <strong>weighted traffic density</strong> — heavier vehicles contribute more to congestion than lighter ones:</p>
+            <ul>
+                <li>🚗 Car = <strong>1.0</strong> &nbsp;|&nbsp; 🏍️ Motorbike = <strong>0.5</strong> &nbsp;|&nbsp; 🚲 Bicycle = <strong>0.5</strong></li>
+                <li>🚌 Bus = <strong>2.5</strong> &nbsp;|&nbsp; 🚚 Truck = <strong>2.5</strong></li>
+                <li>Higher weighted density → Longer green time (up to 60s max)</li>
+            </ul>
+            <p><strong>Status:</strong> <span class="status-indicator" id="status-dot" style="background: #ffff00;"></span><span id="simulation-status">Ready</span></p>
+        </div>
+
+        <!-- Live Density Panel -->
+        <div class="density-panel">
+            <h3>📊 Live Weighted Density</h3>
+            <div class="density-row">
+                <div class="density-item">
+                    <div class="d-label">Lane 1 Density</div>
+                    <div class="d-value" id="lane1-density-val">0.0</div>
+                    <div class="d-congestion" id="lane1-cong">Low 🟢</div>
+                </div>
+                <div class="density-item">
+                    <div class="d-label">Lane 2 Density</div>
+                    <div class="d-value" id="lane2-density-val">0.0</div>
+                    <div class="d-congestion" id="lane2-cong">Low 🟢</div>
+                </div>
+                <div class="density-item">
+                    <div class="d-label">Total Density</div>
+                    <div class="d-value" id="total-density-val">0.0</div>
+                    <div class="d-congestion" style="color:#aaa; font-size:11px;">trucks/buses count more</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Total Vehicles</div>
+                <div class="stat-value" id="total-vehicles">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Simulation Cycles</div>
+                <div class="stat-value" id="cycle-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Avg Wait Time</div>
+                <div class="stat-value" id="avg-wait-time">0s</div>
+            </div>
+        </div>
+
+        <!-- Efficiency Meter -->
+        <div class="efficiency-meter">
+            <div class="stat-label">Traffic Load Level (Weighted)</div>
+            <div class="efficiency-bar">
+                <div class="efficiency-fill" id="efficiency-fill" style="width: 0%;">
+                    <span id="efficiency-value">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic Lights -->
+        <div class="traffic-lights-container">
+            <!-- Lane 1 -->
+            <div class="traffic-light-box">
+                <div class="lane-label">🛣️ Lane 1</div>
+                <div class="lane-density-badge" id="lane1-density-badge">Weighted Density: 0.0</div>
+                <div class="vehicle-count">Vehicles: <span id="lane1-count">0</span></div>
+                <div class="weight-note" id="lane1-calc">—</div>
+
+                <div class="traffic-light">
+                    <div class="light red" id="lane1-red"></div>
+                    <div class="light yellow" id="lane1-yellow"></div>
+                    <div class="light green" id="lane1-green"></div>
+                </div>
+
+                <div class="timer" id="lane1-timer">—</div>
+            </div>
+
+            <!-- Lane 2 -->
+            <div class="traffic-light-box">
+                <div class="lane-label">🛣️ Lane 2</div>
+                <div class="lane-density-badge" id="lane2-density-badge">Weighted Density: 0.0</div>
+                <div class="vehicle-count">Vehicles: <span id="lane2-count">0</span></div>
+                <div class="weight-note" id="lane2-calc">—</div>
+
+                <div class="traffic-light">
+                    <div class="light red" id="lane2-red"></div>
+                    <div class="light yellow" id="lane2-yellow"></div>
+                    <div class="light green" id="lane2-green"></div>
+                </div>
+
+                <div class="timer" id="lane2-timer">—</div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="button-container">
+            <button class="btn btn-success" onclick="startSimulation()">▶️ Start Simulation</button>
+            <button class="btn btn-secondary" onclick="stopSimulation()">⏸️ Stop</button>
+            <button class="btn btn-primary" onclick="resetSimulation()">🔄 Reset</button>
+            <a href="/results" class="btn btn-primary">📋 Results</a>
+        </div>
+    </div>
+</body>
+</html>
