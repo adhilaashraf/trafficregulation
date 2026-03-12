@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Dashboard - Traffic Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: linear-gradient(135deg, #1a1f2e, #16213e);
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand .icon { font-size: 28px; }
+
+        .navbar-brand h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .navbar-brand p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.06);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info span { font-size: 14px; color: rgba(255,255,255,0.8); }
+
+        .badge-role {
+            background: rgba(76,175,80,0.2);
+            color: #4CAF50;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(76,175,80,0.3);
+        }
+
+        .btn-logout {
+            background: rgba(244,67,54,0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(244,67,54,0.3);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(244,67,54,0.3);
+            transform: translateY(-1px);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .page-header p {
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(76,175,80,0.15);
+            color: #4CAF50;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(76,175,80,0.3);
+            margin-left: 12px;
+        }
+
+        .live-dot {
+            width: 7px; height: 7px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1a1f2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover { transform: translateY(-3px); }
+
+        .stat-card .stat-icon { font-size: 32px; margin-bottom: 12px; }
+        .stat-card .stat-value { font-size: 36px; font-weight: 800; color: #fff; }
+        .stat-card .stat-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+        .stat-card .stat-sub { font-size: 12px; margin-top: 8px; padding: 3px 8px; border-radius: 6px; display: inline-block; }
+
+        .low-bg { background: rgba(76,175,80,0.15); color: #4CAF50; }
+        .moderate-bg { background: rgba(255,152,0,0.15); color: #FF9800; }
+        .high-bg { background: rgba(244,67,54,0.15); color: #f44336; }
+
+        /* CONTENT GRID */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1a1f2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* LANE COMPARISON */
+        .lane-bar-container { margin-bottom: 18px; }
+
+        .lane-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .lane-bar-track {
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            height: 14px;
+            overflow: hidden;
+        }
+
+        .lane-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.8s ease;
+        }
+
+        /* ALERTS */
+        .alert-list { max-height: 300px; overflow-y: auto; }
+
+        .alert-item {
+            background: rgba(244,67,54,0.08);
+            border: 1px solid rgba(244,67,54,0.2);
+            border-left: 4px solid #f44336;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .alert-item .alert-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 6px;
+        }
+
+        .alert-item .alert-message {
+            font-size: 14px;
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+
+        .alert-item .alert-details {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 6px;
+        }
+
+        .alert-item .email-badge {
+            display: inline-block;
+            background: rgba(76,175,80,0.15);
+            color: #4CAF50;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .no-alerts {
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        /* TREND */
+        .trend-display {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .trend-icon-big { font-size: 60px; margin-bottom: 10px; }
+        .trend-label-big { font-size: 22px; font-weight: 700; color: #fff; }
+        .trend-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+        .history-list { margin-top: 20px; }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .history-item .h-file { color: rgba(255,255,255,0.6); }
+        .history-item .h-density { color: #667eea; font-weight: 600; }
+        .history-item .h-time { color: rgba(255,255,255,0.3); font-size: 11px; }
+
+        /* FULL WIDTH */
+        .full-width { grid-column: 1 / -1; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">
+        <div class="icon">🚔</div>
+        <div>
+            <h1>Traffic Management System</h1>
+            <p>Police Department Dashboard</p>
+        </div>
+    </div>
+    <div class="navbar-right">
+        <div class="user-info">
+            <span>👮 {{ username }}</span>
+            <span class="badge-role">{{ role|upper }}</span>
+        </div>
+        <a href="/logout" class="btn-logout">🚪 Logout</a>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="page-header">
+        <h2>
+            Traffic Overview
+            <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+        </h2>
+        <p>Real-time traffic monitoring and congestion alerts</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🚗</div>
+            <div class="stat-value" id="totalVehicles">0</div>
+            <div class="stat-label">Total Vehicles Detected</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🛣️</div>
+            <div class="stat-value" id="lane1Count">0</div>
+            <div class="stat-label">Lane 1 Vehicles</div>
+            <div class="stat-sub low-bg" id="lane1Congestion">Low</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🛤️</div>
+            <div class="stat-value" id="lane2Count">0</div>
+            <div class="stat-label">Lane 2 Vehicles</div>
+            <div class="stat-sub low-bg" id="lane2Congestion">Low</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🚨</div>
+            <div class="stat-value" id="totalAlerts">0</div>
+            <div class="stat-label">Total Alerts Sent</div>
+            <div class="stat-sub high-bg">To Police Email</div>
+        </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+        <!-- LANE COMPARISON -->
+        <div class="card">
+            <div class="card-title">📊 Lane Congestion Comparison</div>
+            <div class="lane-bar-container">
+                <div class="lane-bar-label">
+                    <span>Lane 1</span>
+                    <span id="lane1Density">0.0 density</span>
+                </div>
+                <div class="lane-bar-track">
+                    <div class="lane-bar-fill" id="lane1Bar"
+                         style="width:0%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                </div>
+            </div>
+            <div class="lane-bar-container">
+                <div class="lane-bar-label">
+                    <span>Lane 2</span>
+                    <span id="lane2Density">0.0 density</span>
+                </div>
+                <div class="lane-bar-track">
+                    <div class="lane-bar-fill" id="lane2Bar"
+                         style="width:0%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                </div>
+            </div>
+            <div style="margin-top:20px; padding:14px; background:rgba(255,255,255,0.04); border-radius:10px; text-align:center;">
+                <p style="color:rgba(255,255,255,0.4); font-size:12px;">Busier Lane</p>
+                <p style="font-size:18px; font-weight:700; color:#fff; margin-top:5px;" id="busierLane">—</p>
+                <p style="font-size:12px; color:rgba(255,255,255,0.3); margin-top:4px;" id="busierBy"></p>
+            </div>
+        </div>
+
+        <!-- TREND -->
+        <div class="card">
+            <div class="card-title">📈 Traffic Trend Prediction</div>
+            <div class="trend-display">
+                <div class="trend-icon-big" id="trendIcon">⏳</div>
+                <div class="trend-label-big" id="trendLabel">Waiting for data...</div>
+                <div class="trend-sub">Based on last 3 video cycles</div>
+            </div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <!-- ALERTS -->
+        <div class="card full-width">
+            <div class="card-title">🚨 Alert History <span style="font-size:12px; color:rgba(255,255,255,0.3); margin-left:8px;">Auto-emails sent to police department</span></div>
+            <div class="alert-list" id="alertList">
+                <div class="no-alerts">No alerts yet. System is monitoring traffic... 👀</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function getCongestionClass(level) {
+        if (level === 'High') return 'high-bg';
+        if (level === 'Moderate') return 'moderate-bg';
+        return 'low-bg';
+    }
+
+    function updateDashboard() {
+        fetch('/get_vehicle_counts')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('totalVehicles').textContent = data.totalCount || 0;
+                document.getElementById('lane1Count').textContent = data.lane1Count || 0;
+                document.getElementById('lane2Count').textContent = data.lane2Count || 0;
+            });
+
+        fetch('/get_density_trend')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('lane1Density').textContent = (data.lane1_weighted || 0) + ' density';
+                document.getElementById('lane2Density').textContent = (data.lane2_weighted || 0) + ' density';
+
+                const total = (data.lane1_weighted || 0) + (data.lane2_weighted || 0);
+                const l1pct = total > 0 ? (data.lane1_weighted / total * 100) : 0;
+                const l2pct = total > 0 ? (data.lane2_weighted / total * 100) : 0;
+                document.getElementById('lane1Bar').style.width = l1pct + '%';
+                document.getElementById('lane2Bar').style.width = l2pct + '%';
+
+                const l1El = document.getElementById('lane1Congestion');
+                const l2El = document.getElementById('lane2Congestion');
+                l1El.textContent = data.lane1_congestion || 'Low';
+                l2El.textContent = data.lane2_congestion || 'Low';
+                l1El.className = 'stat-sub ' + getCongestionClass(data.lane1_congestion);
+                l2El.className = 'stat-sub ' + getCongestionClass(data.lane2_congestion);
+
+                document.getElementById('busierLane').textContent = data.busier_lane || '—';
+                document.getElementById('busierBy').textContent = data.busier_by > 0 ?
+                    'More congested by ' + data.busier_by + ' density points' : '';
+
+                document.getElementById('trendIcon').textContent = data.trend_icon || '⏳';
+                document.getElementById('trendLabel').textContent = data.trend_label || 'Not enough data';
+
+                if (data.history && data.history.length > 0) {
+                    const historyEl = document.getElementById('historyList');
+                    historyEl.innerHTML = data.history.map((h, i) =>
+                        `<div class="history-item">
+                            <span class="h-file">Cycle ${i+1}: ${h.file}</span>
+                            <span class="h-density">Density: ${h.total_weighted}</span>
+                            <span class="h-time">${h.time}</span>
+                        </div>`
+                    ).join('');
+                }
+            });
+
+        fetch('/get_alerts')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('totalAlerts').textContent = data.total_alerts || 0;
+                const alertListEl = document.getElementById('alertList');
+                if (data.alerts && data.alerts.length > 0) {
+                    alertListEl.innerHTML = [...data.alerts].reverse().map(a =>
+                        `<div class="alert-item">
+                            <div class="alert-time">🕐 ${a.time}</div>
+                            <div class="alert-message">🚨 ${a.message}</div>
+                            <div class="alert-details">Lane 1: ${a.lane1_density} | Lane 2: ${a.lane2_density} | Vehicles: ${a.total_vehicles}</div>
+                            ${a.email_sent ? '<span class="email-badge">✅ Email sent to police</span>' : '<span style="color:#FF9800;font-size:11px;">⚠️ Email failed</span>'}
+                        </div>`
+                    ).join('');
+                } else {
+                    alertListEl.innerHTML = '<div class="no-alerts">No alerts yet. System is monitoring traffic... 👀</div>';
+                }
+            });
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 3000);
+</script>
+
+</body>
+</html>

@@ -24,9 +24,9 @@
             font-weight: bold;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
             position: absolute;
-            top: 20px; /* Position at the top */
+            top: 20px;
             left: 50%;
-            transform: translateX(-50%); /* Center it horizontally */
+            transform: translateX(-50%);
             margin: 0;
         }
 
@@ -72,10 +72,32 @@
         button:hover {
             background-color: #388E3C;
         }
+
+        .logout-btn {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background: rgba(244, 67, 54, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            z-index: 999;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
     </style>
 </head>
 <body>
-    <h1>Smart Traffic Monitoring</h1> <!-- Title centered at the top -->
+
+    <a href="/logout" class="logout-btn">🚪 Logout</a>
+
+    <h1>Smart Traffic Monitoring</h1>
 
     <div class="container">
         <form action="/upload" method="post" enctype="multipart/form-data">
@@ -87,4 +109,3 @@
     </div>
 </body>
 </html>
-
