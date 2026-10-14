@@ -328,21 +328,6 @@ A Flask **session-based login** gives each user type a separate experience.
 
 </div>
 
----
-
-## 🎮 Interactive Demo
-
-Want to see the animated counting demo, PCU sliders and live signal simulation? Open the interactive page:
-
-<div align="center">
-
-[![Open Interactive Demo](https://img.shields.io/badge/▶_OPEN_INTERACTIVE_DEMO-58A6FF?style=for-the-badge)](https://htmlpreview.github.io/?https://github.com/adhilaashraf/trafficregulation/blob/main/index.html)
-
-</div>
-
-> 💡 Needs the project page saved as `index.html` in this repository.
-
----
 
 ## 🎓 Academic Submission
 
