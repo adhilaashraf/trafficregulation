@@ -351,8 +351,8 @@ Want to see the animated counting demo, PCU sliders and live signal simulation? 
 | | |
 |:--|:--|
 | 👨‍🎓 **Student** | ATHILA ASHRAF (MES24MCA-2008) |
-| 👩‍🏫 **Project guide** | Prof. Soumia Chandran M |
-| 🧑‍💼 **Coordinator & HOD** | Dr. GEEVAR C ZACKRIAS |
+| 👩‍🏫 **Project guide** | Prof. Hyderali K |
+| 🧑‍💼 **Coordinator & HOD** | Dr. Geevar C.Zacharias |
 | 🏫 **Institution** | Department of Computer Applications, MES ENGINEERING COLLEGE|
 
 ---
